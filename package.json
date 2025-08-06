@@ -24,6 +24,7 @@
     "test:functional": "jest --projects ./test --runInBand"
   },
   "devDependencies": {
+    "@types/axios": "^0.14.4",
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
     "@types/module-alias": "^2.0.4",
@@ -42,6 +43,7 @@
   },
   "dependencies": {
     "@overnightjs/core": "^1.7.6",
+    "axios": "^1.11.0",
     "body-parser": "^2.2.0",
     "express": "^5.1.0",
     "module-alias": "^2.2.3"
