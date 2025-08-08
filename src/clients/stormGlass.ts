@@ -1,3 +1,4 @@
+import { InternalError } from "@src/util/errors/internal-error";
 import { AxiosStatic } from "axios";
 
 export interface StormGlassPointSource{
@@ -30,23 +31,34 @@ export interface ForecastPoint {
     windSpeed: number;
 }
 
+export class ClientRequestError extends InternalError{
+    constructor(message: string){
+        const internalMessage = 'Unexpected error when trying to communicate to StormGlass';
+        super('${internalMessage}: ${message}');
+    }
+}
+
 export class StormGlass{
     readonly stormGlasAPIParams =
-        'swellHeight,swellPeriod,waveDirection,waveHeight,windDirection,windSpeed';
+        'swellDirection,swellHeight,swellPeriod,waveDirection,waveHeight,windDirection,windSpeed';
     readonly stormGlassAPISource =
         'noaa';
     
     constructor(protected request: AxiosStatic) {}
 
-    public async fetchPoints(lat: number, lng: number): Promise<ForecastPoint[]>{
+    public async fetchPoints(lat: number, lng: number): Promise<ForecastPoint[]>{   
+        try{
         const response = await this.request.get<StormGlassForecastResponse>(
             'https://api.stormglass.io/v2/weather/point?params=${this.stormGlasAPIParams}&source=${this.tormGlassAPISource}&end=1754438400&lat=${lat}&lng=${lng}',{
                 headers:{
-                    'Authorization': '29ca3252-72c8-11f0-8df7-0242ac130006-29ca32fc-72c8-11f0-8df7-0242ac130006'
-                }
+                    Authorization: '29ca3252-72c8-11f0-8df7-0242ac130006-29ca32fc-72c8-11f0-8df7-0242ac130006',
+                },
             }
         );
         return this.normalizeResponse(response.data);
+        }catch(err) {
+            throw new ClientRequestError(err.message);
+        }
     }
     private normalizeResponse(points: StormGlassForecastResponse): ForecastPoint[]{
         return points.hours.filter(this.isValidPoint.bind(this)).map((point)=>({
